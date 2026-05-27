@@ -1,0 +1,589 @@
+{
+    "project": "prl-documenta",
+    "description": "Sistema de gestión documental de Prevención de Riesgos Laborales (PRL) y CAE. Referencia normativa: LPRL 31/1995.",
+    "version": "1.0.0",
+    "rules": {
+        "one_feature_at_a_time": true,
+        "require_tests_to_close": true,
+        "require_approved_spec_to_implement": true,
+        "valid_status": [
+            "pending",
+            "spec_ready",
+            "in_progress",
+            "done",
+            "blocked"
+        ],
+        "sdd_required_when": "feature has \"sdd\": true"
+    },
+    "features": [
+        {
+            "id": 1,
+            "name": "core_upload",
+            "title": "Subida de documentos",
+            "description": "Permite subir documentos al sistema. Solo se admite formato PDF. Cada documento requiere id único, nombre, fecha_validez y fecha_caducidad.",
+            "category": "core_features",
+            "enabled": true,
+            "config": {
+                "formatos_permitidos": [
+                    "pdf"
+                ],
+                "campos_obligatorios": [
+                    "id",
+                    "nombre_archivo",
+                    "formato",
+                    "fecha_validez",
+                    "fecha_caducidad"
+                ]
+            },
+            "acceptance": [
+                "Solo se aceptan archivos en formato PDF",
+                "El sistema rechaza el upload si falta algún campo obligatorio",
+                "Se genera un id único por documento en cada subida",
+                "fecha_caducidad debe ser posterior a fecha_validez"
+            ],
+            "sdd": true,
+            "status": "pending"
+        },
+        {
+            "id": 2,
+            "name": "core_download",
+            "title": "Descarga de documentos",
+            "description": "Permite descargar cualquier documento almacenado por su id único.",
+            "category": "core_features",
+            "enabled": true,
+            "config": {
+                "requiere_autenticacion": true
+            },
+            "acceptance": [
+                "El documento se descarga en su formato original (PDF)",
+                "Devuelve error claro si el id no existe",
+                "El acceso requiere autenticación"
+            ],
+            "sdd": true,
+            "status": "pending"
+        },
+        {
+            "id": 3,
+            "name": "core_reporting",
+            "title": "Generación de informes de estado documental",
+            "description": "Genera informes con el estado de la documentación clasificado en: Vigente, Próxima a caducar y Caducada.",
+            "category": "core_features",
+            "enabled": true,
+            "config": {
+                "estados_posibles": [
+                    "vigente",
+                    "proxima_a_caducar",
+                    "caducada"
+                ],
+                "formatos_exportacion": [
+                    "pdf",
+                    "csv"
+                ]
+            },
+            "acceptance": [
+                "El informe incluye una sección por cada estado posible",
+                "Puede filtrarse por categoría (empresa, trabajadores, equipos)",
+                "Exportable en PDF y CSV",
+                "Refleja el estado a fecha del momento de generación"
+            ],
+            "sdd": true,
+            "status": "pending"
+        },
+        {
+            "id": 4,
+            "name": "category_empresa",
+            "title": "Categoría: Documentación de Empresa",
+            "description": "Gestión de la documentación corporativa general de PRL (plan de prevención, evaluaciones de riesgo, etc.).",
+            "category": "document_categories",
+            "enabled": true,
+            "config": {
+                "slug": "empresa",
+                "campos_especificos": [
+                    "razon_social",
+                    "cif",
+                    "actividad_economica",
+                    "centro_trabajo"
+                ]
+            },
+            "acceptance": [
+                "Los documentos de empresa incluyen los campos específicos de la categoría",
+                "Se pueden listar todos los documentos de empresa paginados",
+                "El filtrado por estado (vigente / caducado) funciona correctamente"
+            ],
+            "sdd": true,
+            "status": "pending"
+        },
+        {
+            "id": 5,
+            "name": "category_trabajadores",
+            "title": "Categoría: Documentación de Trabajadores",
+            "description": "Documentos asociados a empleados: formaciones, reconocimientos médicos, EPIs entregados, etc.",
+            "category": "document_categories",
+            "enabled": true,
+            "config": {
+                "slug": "trabajadores",
+                "campos_especificos": [
+                    "nombre_trabajador",
+                    "dni",
+                    "puesto",
+                    "tipo_documento"
+                ],
+                "tipos_documento": [
+                    "formacion",
+                    "reconocimiento_medico",
+                    "entrega_epi",
+                    "aptitud_medica"
+                ]
+            },
+            "acceptance": [
+                "Cada documento está vinculado a un trabajador por DNI",
+                "El tipo de documento debe pertenecer a la lista de tipos permitidos",
+                "Se pueden listar todos los documentos de un trabajador concreto"
+            ],
+            "sdd": true,
+            "status": "pending"
+        },
+        {
+            "id": 6,
+            "name": "category_equipos",
+            "title": "Categoría: Documentación de Equipos y Maquinaria",
+            "description": "Documentación asociada a maquinaria y equipos de trabajo. Incluye sub-tipos específicos para mantenimientos e inspecciones.",
+            "category": "document_categories",
+            "enabled": true,
+            "config": {
+                "slug": "equipos",
+                "campos_especificos": [
+                    "id_equipo",
+                    "nombre_equipo",
+                    "numero_serie",
+                    "ubicacion"
+                ],
+                "subtipos": {
+                    "mantenimiento": {
+                        "campos": [
+                            "tipo_mantenimiento",
+                            "empresa_mantenedora",
+                            "fecha_proximo_mantenimiento"
+                        ]
+                    },
+                    "inspeccion": {
+                        "campos": [
+                            "organismo_inspector",
+                            "resultado_inspeccion",
+                            "fecha_proxima_inspeccion"
+                        ]
+                    }
+                }
+            },
+            "acceptance": [
+                "Cada documento de equipo está vinculado a un id_equipo",
+                "Los documentos de tipo mantenimiento incluyen los campos de mantenimiento",
+                "Los documentos de tipo inspección incluyen los campos de inspección",
+                "Se pueden listar todos los documentos de un equipo concreto"
+            ],
+            "sdd": true,
+            "status": "pending"
+        },
+        {
+            "id": 7,
+            "name": "alert_system",
+            "title": "Sistema de alertas por caducidad",
+            "description": "Genera avisos y alertas automáticas en función de los días restantes hasta la fecha_caducidad de cada documento.",
+            "category": "alert_system",
+            "enabled": true,
+            "config": {
+                "umbrales_dias": {
+                    "aviso": 30,
+                    "alerta": 15,
+                    "alerta_critica": 5
+                },
+                "notificaciones": {
+                    "email": true,
+                    "panel_interno": true
+                }
+            },
+            "acceptance": [
+                "A 30 días de la caducidad se genera un aviso",
+                "A 15 días se genera una alerta",
+                "A 5 días se genera una alerta crítica",
+                "Los documentos ya caducados aparecen marcados como 'caducada' en el panel",
+                "Las notificaciones por email y panel interno son configurables de forma independiente"
+            ],
+            "sdd": true,
+            "status": "pending"
+        }
+    ],
+    "company_documentation": {
+        "enabled": true,
+        "description": "Documentación corporativa obligatoria de la empresa para PRL y CAE.",
+        "documents": [
+            {
+                "id": "company_001",
+                "name": "certificado_corriente_pago_aeat",
+                "title": "Certificado de estar al corriente de pago con la AEAT",
+                "is_mandatory": true,
+                "requires_start_date": true,
+                "requires_expiry_date": true,
+                "cadence": "annual",
+                "formats_allowed": [
+                    "pdf"
+                ]
+            },
+            {
+                "id": "company_002",
+                "name": "certificado_corriente_pago_seguridad_social",
+                "title": "Certificado de estar al corriente de pago con la Seguridad Social",
+                "is_mandatory": true,
+                "requires_start_date": true,
+                "requires_expiry_date": true,
+                "cadence": "annual",
+                "formats_allowed": [
+                    "pdf"
+                ]
+            },
+            {
+                "id": "company_003",
+                "name": "rlc_recibo_liquidacion_cotizaciones",
+                "title": "RLC - Recibo de Liquidación de Cotizaciones",
+                "is_mandatory": true,
+                "requires_start_date": true,
+                "requires_expiry_date": true,
+                "cadence": "monthly",
+                "formats_allowed": [
+                    "pdf"
+                ]
+            },
+            {
+                "id": "company_004",
+                "name": "rnt_relacion_nominal_trabajadores",
+                "title": "RNT - Relación Nominal de Trabajadores",
+                "is_mandatory": true,
+                "requires_start_date": true,
+                "requires_expiry_date": true,
+                "cadence": "monthly",
+                "formats_allowed": [
+                    "pdf"
+                ]
+            },
+            {
+                "id": "company_005",
+                "name": "poliza_responsabilidad_civil",
+                "title": "Póliza de Responsabilidad Civil y recibo de pago vigente",
+                "is_mandatory": true,
+                "requires_start_date": true,
+                "requires_expiry_date": true,
+                "cadence": "annual",
+                "includes": [
+                    "poliza",
+                    "recibo_pago"
+                ],
+                "formats_allowed": [
+                    "pdf"
+                ]
+            },
+            {
+                "id": "company_006",
+                "name": "poliza_accidentes_trabajo",
+                "title": "Póliza de Accidentes de Trabajo y recibo de pago vigente",
+                "is_mandatory": true,
+                "requires_start_date": true,
+                "requires_expiry_date": true,
+                "cadence": "annual",
+                "includes": [
+                    "poliza",
+                    "recibo_pago"
+                ],
+                "formats_allowed": [
+                    "pdf"
+                ]
+            },
+            {
+                "id": "company_007",
+                "name": "documento_adhesion_mutua",
+                "title": "Documento de adhesión a la Mutua",
+                "is_mandatory": true,
+                "requires_start_date": true,
+                "requires_expiry_date": false,
+                "cadence": "indefinite",
+                "formats_allowed": [
+                    "pdf"
+                ]
+            },
+            {
+                "id": "company_008",
+                "name": "contrato_servicio_prevencion_ajeno",
+                "title": "Contrato del Servicio de Prevención Ajeno (SPA) - modalidad y certificado de pago",
+                "is_mandatory": true,
+                "requires_start_date": true,
+                "requires_expiry_date": true,
+                "cadence": "annual",
+                "includes": [
+                    "contrato",
+                    "modalidad_preventiva",
+                    "certificado_pago"
+                ],
+                "formats_allowed": [
+                    "pdf"
+                ]
+            },
+            {
+                "id": "company_009",
+                "name": "rea_registro_empresas_acreditadas",
+                "title": "REA - Registro de Empresas Acreditadas (construcción)",
+                "is_mandatory": false,
+                "applies_to_sectors": [
+                    "construccion"
+                ],
+                "requires_start_date": true,
+                "requires_expiry_date": true,
+                "cadence": "annual",
+                "formats_allowed": [
+                    "pdf"
+                ]
+            },
+            {
+                "id": "company_010",
+                "name": "plan_prevencion_evaluacion_riesgos",
+                "title": "Plan de Prevención y Evaluación de Riesgos Laborales (ERL)",
+                "is_mandatory": true,
+                "requires_start_date": true,
+                "requires_expiry_date": false,
+                "cadence": "indefinite",
+                "requires_periodic_review": true,
+                "review_interval_years": 2,
+                "formats_allowed": [
+                    "pdf"
+                ]
+            }
+        ]
+    },
+    "employee_documentation": {
+        "enabled": true,
+        "description": "Documentación obligatoria por empleado para PRL y CAE.",
+        "documents": [
+            {
+                "id": "emp_001",
+                "name": "documento_identidad",
+                "title": "Documento de Identidad (DNI / NIE / Pasaporte)",
+                "is_mandatory": true,
+                "requires_start_date": true,
+                "requires_expiry_date": true,
+                "cadence": "multi_annual",
+                "formats_allowed": [
+                    "pdf"
+                ]
+            },
+            {
+                "id": "emp_002",
+                "name": "ficha_informacion_riesgos",
+                "title": "Ficha de Información de Riesgos (Art. 18 LPRL)",
+                "legal_reference": "Art. 18 LPRL 31/1995",
+                "is_mandatory": true,
+                "requires_start_date": true,
+                "requires_expiry_date": true,
+                "cadence": "annual",
+                "formats_allowed": [
+                    "pdf"
+                ]
+            },
+            {
+                "id": "emp_003",
+                "name": "ficha_formacion_riesgos",
+                "title": "Ficha de Formación de Riesgos (Art. 19 LPRL)",
+                "legal_reference": "Art. 19 LPRL 31/1995",
+                "is_mandatory": true,
+                "requires_start_date": true,
+                "requires_expiry_date": true,
+                "cadence": "annual",
+                "formats_allowed": [
+                    "pdf"
+                ]
+            },
+            {
+                "id": "emp_004",
+                "name": "certificado_aptitud_medica",
+                "title": "Certificado de Aptitud Médica (Vigilancia de la Salud)",
+                "is_mandatory": true,
+                "requires_start_date": true,
+                "requires_expiry_date": true,
+                "cadence": "annual",
+                "formats_allowed": [
+                    "pdf"
+                ]
+            },
+            {
+                "id": "emp_005",
+                "name": "justificante_entrega_epis",
+                "title": "Justificante de Entrega de Equipos de Protección Individual (EPIs)",
+                "is_mandatory": true,
+                "requires_start_date": true,
+                "requires_expiry_date": false,
+                "cadence": "on_delivery",
+                "formats_allowed": [
+                    "pdf"
+                ]
+            },
+            {
+                "id": "emp_006",
+                "name": "formaciones_convenio_sectoriales",
+                "title": "Formaciones específicas de Convenio o Sectoriales",
+                "is_mandatory": true,
+                "requires_start_date": true,
+                "requires_expiry_date": true,
+                "cadence": "multi_annual",
+                "formats_allowed": [
+                    "pdf"
+                ]
+            },
+            {
+                "id": "emp_007",
+                "name": "autorizacion_uso_maquinaria",
+                "title": "Autorización expresa para el uso de maquinaria / equipos de riesgo",
+                "is_mandatory": true,
+                "requires_start_date": true,
+                "requires_expiry_date": true,
+                "cadence": "annual",
+                "formats_allowed": [
+                    "pdf"
+                ]
+            }
+        ]
+    },
+    "equipment_documentation": {
+        "enabled": true,
+        "description": "Documentación obligatoria para maquinaria, extintores, botiquines y equipos de trabajo. Referencia: RD 1215/97.",
+        "documents": [
+            {
+                "id": "equip_001",
+                "name": "declaracion_conformidad_ce",
+                "title": "Declaración de Conformidad CE / Certificación RD 1215/97",
+                "legal_reference": "RD 1215/1997",
+                "is_mandatory": true,
+                "requires_start_date": true,
+                "requires_expiry_date": false,
+                "cadence": "indefinite",
+                "formats_allowed": [
+                    "pdf"
+                ]
+            },
+            {
+                "id": "equip_002",
+                "name": "registro_inspecciones_tecnicas",
+                "title": "Registro de Inspecciones Técnicas / Revisiones Obligatorias",
+                "is_mandatory": true,
+                "requires_start_date": true,
+                "requires_expiry_date": true,
+                "cadence": "annual",
+                "fields": {
+                    "organismo_inspector": "string",
+                    "resultado_inspeccion": [
+                        "favorable",
+                        "condicionado",
+                        "desfavorable"
+                    ],
+                    "fecha_proxima_inspeccion": "date"
+                },
+                "formats_allowed": [
+                    "pdf"
+                ]
+            },
+            {
+                "id": "equip_003",
+                "name": "ficha_mantenimiento",
+                "title": "Ficha de Mantenimiento Preventivo / Correctivo",
+                "is_mandatory": true,
+                "requires_start_date": true,
+                "requires_expiry_date": true,
+                "cadence": "periodic",
+                "fields": {
+                    "tipo_mantenimiento": [
+                        "preventivo",
+                        "correctivo"
+                    ],
+                    "empresa_mantenedora": "string",
+                    "fecha_proximo_mantenimiento": "date"
+                },
+                "formats_allowed": [
+                    "pdf"
+                ]
+            }
+        ]
+    },
+    "expiration_rules": {
+        "enabled": true,
+        "description": "Reglas de alerta diferenciadas según la cadencia de caducidad del documento.",
+        "rules": [
+            {
+                "id": "rule_monthly",
+                "name": "alerta_documentos_mensuales",
+                "title": "Alertas para documentos mensuales",
+                "applies_to_cadence": [
+                    "monthly"
+                ],
+                "applies_to_document_ids": [
+                    "company_003",
+                    "company_004"
+                ],
+                "thresholds_days": [
+                    5
+                ],
+                "levels": [
+                    {
+                        "days_before": 5,
+                        "level": "alerta_critica",
+                        "notification": [
+                            "email",
+                            "panel_interno"
+                        ]
+                    }
+                ]
+            },
+            {
+                "id": "rule_annual_multi_annual",
+                "name": "alerta_documentos_anuales_plurianuales",
+                "title": "Alertas para documentos anuales o plurianuales",
+                "applies_to_cadence": [
+                    "annual",
+                    "multi_annual"
+                ],
+                "applies_to_document_ids": [
+                    "company_001",
+                    "company_002",
+                    "company_005",
+                    "company_006",
+                    "company_008",
+                    "company_009",
+                    "emp_001",
+                    "emp_002",
+                    "emp_003",
+                    "emp_004",
+                    "emp_006",
+                    "emp_007",
+                    "equip_002",
+                    "equip_003"
+                ],
+                "thresholds_days": [
+                    30,
+                    15
+                ],
+                "levels": [
+                    {
+                        "days_before": 30,
+                        "level": "aviso",
+                        "notification": [
+                            "panel_interno"
+                        ]
+                    },
+                    {
+                        "days_before": 15,
+                        "level": "alerta",
+                        "notification": [
+                            "email",
+                            "panel_interno"
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+}
