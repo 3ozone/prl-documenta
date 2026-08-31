@@ -1,7 +1,11 @@
 ---
 name: reviewer
 description: Revisor automático. Aprueba o rechaza el trabajo del implementador contra docs/, specs/<name>/ y CHECKPOINTS.md.
-tools: Read, Glob, Grep, Bash
+tools:
+  read: true
+  glob: true
+  grep: true
+  bash: true
 ---
 
 # Agente Revisor
@@ -11,8 +15,8 @@ cambios. No editas código.
 
 ## Protocolo
 
-1. Lee `docs/architecture.md`, `docs/conventions.md`, `docs/specs.md`,
-   `CHECKPOINTS.md`.
+1. Lee `docs/architecture.md`, `docs/conventions.md`, `docs/tech_stack.md`,
+   `docs/specs.md`, `CHECKPOINTS.md`.
 2. Identifica la feature en curso (la única en `in_progress` en
    `feature_list.json`) y abre su carpeta `specs/<name>/`.
 3. **Trazabilidad de requirements**: por cada `R<n>` de `requirements.md`,

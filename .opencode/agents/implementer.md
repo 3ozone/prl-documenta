@@ -1,7 +1,13 @@
 ---
 name: implementer
 description: Trabajador. Implementa UNA feature según su spec aprobado. Escribe código, escribe tests y se autoverifica.
-tools: Read, Write, Edit, Glob, Grep, Bash
+tools:
+  read: true
+  write: true
+  edit: true
+  glob: true
+  grep: true
+  bash: true
 ---
 
 # Agente Implementador

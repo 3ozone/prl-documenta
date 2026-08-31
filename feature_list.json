@@ -42,7 +42,7 @@
                 "fecha_caducidad debe ser posterior a fecha_validez"
             ],
             "sdd": true,
-            "status": "pending"
+            "status": "done"
         },
         {
             "id": 2,
@@ -60,7 +60,7 @@
                 "El acceso requiere autenticación"
             ],
             "sdd": true,
-            "status": "pending"
+            "status": "done"
         },
         {
             "id": 3,
@@ -87,7 +87,7 @@
                 "Refleja el estado a fecha del momento de generación"
             ],
             "sdd": true,
-            "status": "pending"
+            "status": "done"
         },
         {
             "id": 4,
@@ -111,7 +111,7 @@
                 "El filtrado por estado (vigente / caducado) funciona correctamente"
             ],
             "sdd": true,
-            "status": "pending"
+            "status": "done"
         },
         {
             "id": 5,
@@ -141,7 +141,7 @@
                 "Se pueden listar todos los documentos de un trabajador concreto"
             ],
             "sdd": true,
-            "status": "pending"
+            "status": "done"
         },
         {
             "id": 6,
@@ -182,7 +182,7 @@
                 "Se pueden listar todos los documentos de un equipo concreto"
             ],
             "sdd": true,
-            "status": "pending"
+            "status": "done"
         },
         {
             "id": 7,
@@ -210,7 +210,236 @@
                 "Las notificaciones por email y panel interno son configurables de forma independiente"
             ],
             "sdd": true,
-            "status": "pending"
+            "status": "done"
+        },
+        {
+            "id": 8,
+            "name": "auth",
+            "title": "Autenticación y autorización",
+            "description": "Sistema de autenticación JWT con usuarios en BD. Dos roles: admin (subir/borrar) y viewer (solo lectura). Todos los endpoints existentes requieren token válido.",
+            "category": "security",
+            "enabled": true,
+            "config": {
+                "mecanismo": "jwt_bearer",
+                "usuarios": "bd_propia",
+                "tabla": "users",
+                "campos_usuario": ["id", "email", "hashed_password", "role", "is_active"],
+                "roles": ["admin", "viewer"],
+                "permisos": {
+                    "admin": ["upload", "download", "list", "reports", "alerts", "delete"],
+                    "viewer": ["download", "list", "reports", "alerts"]
+                },
+                "token": {
+                    "tipo": "Bearer",
+                    "algoritmo": "HS256",
+                    "expiracion_minutos": 60
+                }
+            },
+            "acceptance": [
+                "POST /api/v1/auth/register crea un nuevo usuario (solo admin puede crear admins)",
+                "POST /api/v1/auth/login devuelve access_token JWT con role incluido en claims",
+                "Todos los endpoints existentes devuelven 401 si no hay token válido",
+                "Endpoints de escritura (upload, delete) devuelven 403 si el rol es viewer",
+                "Un viewer puede descargar, listar, ver informes y alertas"
+            ],
+            "sdd": true,
+            "status": "done"
+        },
+        {
+            "id": 9,
+            "name": "infra_docker",
+            "title": "Infraestructura Docker (MariaDB + Adminer + Dockerfile)",
+            "description": "docker-compose con MariaDB y Adminer para desarrollo local. Dockerfile para el backend. La app no se añade al compose aún.",
+            "category": "infrastructure",
+            "enabled": true,
+            "config": {
+                "mariadb_version": "11",
+                "adminer_version": "latest",
+                "app_port": 8000,
+                "db_port": 3306,
+                "adminer_port": 8080
+            },
+            "acceptance": [
+                "docker compose up arranca MariaDB accesible en localhost:3306",
+                "Adminer accesible en localhost:8080",
+                "Dockerfile construye la imagen del backend correctamente",
+                "La app puede conectarse a MariaDB via DATABASE_URL"
+            ],
+            "sdd": false,
+            "status": "done"
+        },
+        {
+            "id": 10,
+"name": "frontend_setup",
+            "title": "Frontend — Scaffolding Next.js 15",
+            "description": "Inicializar el proyecto Next.js 15 con TypeScript strict, Tailwind CSS, ESLint, Prettier y Vitest. Crear estructura de carpetas, layout base, lib/api.ts, lib/logger.ts, lib/types.ts, middleware de autenticación y Dockerfile.",
+            "category": "frontend",
+            "enabled": true,
+            "config": {
+                "framework": "next.js",
+                "version": "15.x",
+                "language": "typescript",
+                "ts_strict": true,
+                "css": "tailwind",
+                "testing": "vitest",
+                "linting": "eslint",
+                "formatting": "prettier",
+                "package_manager": "npm"
+            },
+            "acceptance": [
+                "npm run dev arranca sin errores",
+                "npx vitest run pasa",
+                "Tailwind funciona",
+                "Path aliases @/ resuelven correctamente",
+                "middleware.ts redirige a /login si no hay cookie token",
+                "Dockerfile construye la imagen del frontend correctamente"
+            ],
+            "sdd": true,
+            "status": "done"
+        },
+        {
+            "id": 11,
+            "name": "frontend_auth",
+            "title": "Frontend — Autenticación",
+            "description": "Página /login con formulario (email + password). Server Actions para login/logout usando cookie httpOnly. Redirección post-login a /dashboard. Botón logout en layout.",
+            "category": "frontend",
+            "enabled": true,
+            "config": {
+                "ruta_login": "/login",
+                "ruta_post_login": "/dashboard",
+                "mecanismo": "cookie_httponly",
+                "server_actions": ["login", "logout"]
+            },
+            "acceptance": [
+                "Formulario /login valida email y password en cliente antes de enviar",
+                "Login correcto guarda cookie httpOnly 'token' y redirige a /dashboard",
+                "Login incorrecto muestra mensaje de error",
+                "Logout borra la cookie y redirige a /login",
+                "Rutas protegidas sin cookie redirigen a /login (middleware ya cubre esto)"
+            ],
+            "sdd": true,
+            "status": "done"
+        },
+        {
+            "id": 12,
+            "name": "frontend_dashboard",
+            "title": "Frontend — Panel principal",
+            "description": "Página /dashboard con resumen de alertas activas (por nivel) y conteo de documentos por categoría y estado. Server Component con fetch directo a FastAPI.",
+            "category": "frontend",
+            "enabled": true,
+            "config": {
+                "widgets": [
+                    "conteo_alertas_por_nivel",
+                    "conteo_documentos_por_categoria",
+                    "conteo_documentos_por_estado"
+                ]
+            },
+            "acceptance": [
+                "Muestra conteo de alertas agrupadas por nivel (aviso, alerta, alerta_critica, caducada)",
+                "Muestra conteo de documentos por categoría (empresa, trabajadores, equipos)",
+                "Los datos se cargan en servidor (no hay spinner en la página inicial)",
+                "Sin sesión válida redirige a /login"
+            ],
+            "sdd": true,
+            "status": "done"
+        },
+        {
+            "id": 13,
+            "name": "frontend_documents",
+            "title": "Frontend — Gestión de documentos",
+            "description": "Listado paginado de documentos. Formulario de subida de PDF (react-hook-form). Descarga de documento. Solo admins ven el botón de subida.",
+            "category": "frontend",
+            "enabled": true,
+            "config": {
+                "paginas": ["/documents", "/documents/upload"],
+                "paginacion": { "per_page": 20 },
+                "roles_upload": ["admin"]
+            },
+            "acceptance": [
+                "Listado muestra id, nombre, fecha_validez, fecha_caducidad y estado",
+                "Paginación funciona correctamente",
+                "Admin ve botón 'Subir documento', viewer no lo ve",
+                "Formulario de subida valida en cliente antes de enviar",
+                "Solo se permiten archivos PDF (validación en cliente y servidor)",
+                "Descarga abre el PDF en el navegador"
+            ],
+            "sdd": true,
+            "status": "done"
+        },
+        {
+            "id": 14,
+            "name": "frontend_categories",
+            "title": "Frontend — Categorías de documentos",
+            "description": "Formularios y listados para las tres categorías: empresa, trabajadores y equipos. Campos específicos por categoría. Equipos con campos condicionales según subtipo.",
+            "category": "frontend",
+            "enabled": true,
+            "config": {
+                "categorias": ["empresa", "trabajadores", "equipos"],
+                "paginas": [
+                    "/categories/empresa",
+                    "/categories/trabajadores",
+                    "/categories/equipos"
+                ]
+            },
+            "acceptance": [
+                "Formulario empresa incluye razon_social, cif, actividad_economica, centro_trabajo",
+                "Formulario trabajadores incluye nombre_trabajador, dni, puesto, tipo_documento",
+                "Formulario equipos muestra campos de mantenimiento o inspección según subtipo seleccionado",
+                "Listados filtran por categoría correctamente",
+                "Solo admins pueden subir, viewers solo listan"
+            ],
+            "sdd": true,
+            "status": "done"
+        },
+        {
+            "id": 15,
+            "name": "frontend_alerts",
+            "title": "Frontend — Panel de alertas",
+            "description": "Página /alerts con listado de alertas activas. Filtro por nivel. Badge de color por nivel. Refresco automático con SWR.",
+            "category": "frontend",
+            "enabled": true,
+            "config": {
+                "pagina": "/alerts",
+                "niveles": ["caducada", "alerta_critica", "alerta", "aviso"],
+                "colores": {
+                    "caducada": "red",
+                    "alerta_critica": "orange",
+                    "alerta": "yellow",
+                    "aviso": "blue"
+                },
+                "refresco_segundos": 60
+            },
+            "acceptance": [
+                "Lista documentos con alerta activa ordenados por días restantes ascendente",
+                "Cada alerta muestra: nombre documento, categoría, días restantes y nivel con badge de color",
+                "Filtro por nivel funciona sin recargar la página",
+                "Los datos se refrescan automáticamente cada 60 segundos (SWR)",
+                "Lista vacía muestra mensaje 'No hay alertas activas'"
+            ],
+            "sdd": true,
+            "status": "done"
+        },
+        {
+            "id": 16,
+            "name": "frontend_reports",
+            "title": "Frontend — Generación de informes",
+            "description": "Página /reports para generar y descargar informes de estado documental en CSV o PDF. Filtro por categoría.",
+            "category": "frontend",
+            "enabled": true,
+            "config": {
+                "pagina": "/reports",
+                "formatos": ["csv", "pdf"],
+                "filtros": ["categoria"]
+            },
+            "acceptance": [
+                "Selector de formato (CSV / PDF)",
+                "Selector de categoría opcional (empresa, trabajadores, equipos, todas)",
+                "Botón 'Generar informe' descarga el archivo directamente",
+                "Durante la descarga se muestra un estado de carga",
+                "Solo usuarios autenticados pueden generar informes"
+            ],
+            "sdd": true,
+            "status": "done"
         }
     ],
     "company_documentation": {

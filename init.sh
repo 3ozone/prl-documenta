@@ -168,7 +168,7 @@ echo ""
 echo "── 7. Ejecutando tests TypeScript ──────────────────────"
 
 if [ "$NODE_OK" -eq 1 ] && [ -d "frontend" ] && [ -f "frontend/package.json" ]; then
-  (cd frontend && npm run test --if-present 2>&1)
+  (cd frontend && npx vitest run 2>&1)
   if [ $? -eq 0 ]; then
     ok "Tests TypeScript pasan"
   else
